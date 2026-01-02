@@ -13,13 +13,11 @@ Android has a strict **1MB limit** on data passed through `Bundle` objects (used
 
 ## Installation
 
-### Step 1: Add the library to your project
-
-Add to your module's `build.gradle.kts`:
+Add the library to your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation(project(":toolarge-android"))
+    implementation("llc.applabs.toolarge:toolarge-android:1.0.0")
 }
 ```
 
@@ -239,10 +237,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Make your changes
 5. Ensure all tests pass
 6. Submit a PR
-
-## Publishing
-
-See [PUBLISHING.md](PUBLISHING.md) for detailed instructions on publishing this library to Maven Central or other repositories.
 
 ## Credits
 
