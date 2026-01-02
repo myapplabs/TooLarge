@@ -2,6 +2,7 @@
 # Tooling
 agp = "8.5.2"
 kotlin = "2.0.21"
+mavenCentralPublish = "0.6.0"
 
 # Android SDK
 compileSdk = "34"
@@ -70,6 +71,7 @@ kotlin-android       = { id = "org.jetbrains.kotlin.android", version.ref = "kot
 kotlin-jvm           = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose       = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+maven-central-publish = { id = "com.gradle.plugin-publish", version.ref = "mavenCentralPublish" }
 
 
 

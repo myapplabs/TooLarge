@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     id("maven-publish")
+    id("signing")
 }
 
 val publishVersion: String by project
@@ -52,4 +53,20 @@ publishing {
             }
         }
     }
+    
+    repositories {
+        maven {
+            name = "central"
+            url = uri("https://central.sonatype.com/api/v1/publisher/deployments/download")
+            
+            credentials {
+                username = findProperty("mavenCentralUsername") as String? ?: findProperty("ossrhUsername") as String?
+                password = findProperty("mavenCentralPassword") as String? ?: findProperty("ossrhPassword") as String?
+            }
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications["release"])
 }
