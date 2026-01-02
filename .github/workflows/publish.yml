@@ -50,8 +50,9 @@ jobs:
             
       - name: Create bundle for Maven Central
         run: |
-          cd ~/.m2/repository/io/github/myapplabs
-          zip -r ~/toolarge-bundle.zip toolarge-core toolarge-android
+          cd $HOME/.m2/repository/io/github/myapplabs
+          zip -r $HOME/toolarge-bundle.zip toolarge-core toolarge-android
+          mv $HOME/toolarge-bundle.zip ${{ github.workspace }}/toolarge-bundle.zip
           
       - name: Upload to Maven Central Portal
         env:
@@ -86,4 +87,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maven-central-bundle
-          path: ~/toolarge-bundle.zip
+          path: ${{ github.workspace }}/toolarge-bundle.zip
