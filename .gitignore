@@ -1,0 +1,27 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Firebender / Cursor AI chat history
+.idea/firebender/
+*.db
+*.db-shm
+*.db-wal
+
+# Project exclude paths
+/toolarge-android/build/
+/toolarge-core/build/
+/toolarge-core/build/classes/kotlin/main/
+/app/build/
