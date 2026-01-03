@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Corrected Maven coordinates in README from `llc.applabs.toolarge` to `io.github.myapplabs`
+- Added explicit import statements to all code examples in README
+- Added troubleshooting section for common setup issues
+- Improved installation instructions with repository configuration
+
 ## [1.0.0] - 2026-01-02
 
 ### Added

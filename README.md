@@ -13,17 +13,39 @@ Android has a strict **1MB limit** on data passed through `Bundle` objects (used
 
 ## Installation
 
+### Step 1: Add Maven Central repository
+
+Make sure Maven Central is added to your `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()  // Make sure this is included
+    }
+}
+```
+
+### Step 2: Add the dependency
+
 Add the library to your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("llc.applabs.toolarge:toolarge-android:1.0.0")
+    implementation("io.github.myapplabs:toolarge-android:1.0.0")
 }
 ```
 
-### Step 2: Initialize in your Application class
+### Step 3: Import and initialize in your Application class
 
 ```kotlin
+import android.app.Application
+import llc.applabs.toolarge.android.TooLarge
+import llc.applabs.toolarge.android.LogcatSink
+import llc.applabs.toolarge.model.Origin
+import llc.applabs.toolarge.policy.Budget
+import llc.applabs.toolarge.policy.PolicyConfig
+
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
@@ -119,6 +141,9 @@ PolicyConfig(
 Implement `ReportSink` to send reports anywhere:
 
 ```kotlin
+import llc.applabs.toolarge.model.TooLargeReport
+import llc.applabs.toolarge.sink.ReportSink
+
 class CustomSink : ReportSink {
     override fun emit(report: TooLargeReport) {
         // Send to your analytics service
@@ -204,6 +229,73 @@ Check out the `:app` module for a complete example showing:
 - How to configure TooLarge
 - Intentionally oversized Bundles to trigger warnings
 - How to read and interpret the logs
+
+## Troubleshooting
+
+### Unresolved Reference Errors
+
+If you're getting "unresolved reference" errors for `PolicyConfig`, `Origin`, `TooLarge`, etc.:
+
+1. **Verify Maven coordinates** - Make sure you're using:
+   ```kotlin
+   implementation("io.github.myapplabs:toolarge-android:1.0.0")
+   ```
+   NOT `llc.applabs.toolarge:toolarge-android:1.0.0`
+
+2. **Check repository configuration** - Ensure Maven Central is in your `settings.gradle.kts`:
+   ```kotlin
+   repositories {
+       google()
+       mavenCentral()
+   }
+   ```
+
+3. **Use correct imports** - The package names use `llc.applabs.toolarge.*`:
+   ```kotlin
+   import llc.applabs.toolarge.android.TooLarge
+   import llc.applabs.toolarge.model.Origin
+   import llc.applabs.toolarge.policy.PolicyConfig
+   ```
+
+4. **Sync your project** - After adding the dependency, sync Gradle:
+   - In Android Studio: File → Sync Project with Gradle Files
+   - Or run: `./gradlew --refresh-dependencies`
+
+5. **Check your Gradle version** - This library requires Gradle 7.0+ and AGP 8.0+
+
+6. **Clean and rebuild**:
+   ```bash
+   ./gradlew clean build
+   ```
+
+### Library Not Found in Maven Central
+
+If Maven Central can't find the library, it may not be published yet or the publication may have failed. 
+
+**To verify publication status:**
+
+1. Check Maven Central:
+   - Search: `https://search.maven.org/search?q=g:io.github.myapplabs+AND+a:toolarge-android`
+   - Direct: `https://central.sonatype.com/artifact/io.github.myapplabs/toolarge-android`
+
+2. Check GitHub releases:
+   - Visit: `https://github.com/myapplabs/TooLarge/releases`
+   - Ensure v1.0.0 is published and the workflow succeeded
+
+3. **Temporary workaround - Use Maven Local** (for testing or if not yet published):
+   - Clone this repository
+   - Run: `./gradlew publishToMavenLocal -PpublishVersion=1.0.0`
+   - Add to your project's `settings.gradle.kts`:
+     ```kotlin
+     dependencyResolutionManagement {
+         repositories {
+             mavenLocal()  // Add this BEFORE mavenCentral()
+             google()
+             mavenCentral()
+         }
+     }
+     ```
+   - Use the dependency: `implementation("io.github.myapplabs:toolarge-android:1.0.0")`
 
 ## License
 
