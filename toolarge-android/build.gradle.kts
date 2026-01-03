@@ -87,7 +87,7 @@ afterEvaluate {
         repositories {
             maven {
                 name = "central"
-                url = uri("https://central.sonatype.com/api/v1/publisher/deployments/download")
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
                 
                 credentials {
                     username = findProperty("mavenCentralUsername") as String? ?: findProperty("ossrhUsername") as String?

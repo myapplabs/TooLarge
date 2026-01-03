@@ -63,102 +63,37 @@ jobs:
           # Clean up the ASCII key file
           rm -f $HOME/private-key.asc
           
-      - name: Build and publish
+      - name: Publish to Maven Central
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
-          ./gradlew publishToMavenLocal \
-            -PpublishVersion=${{ github.event.inputs.version || github.ref_name }} \
+          VERSION=${{ github.event.inputs.version || github.ref_name }}
+          VERSION=${VERSION#v}  # Remove 'v' prefix if present
+          
+          echo "Publishing version: $VERSION to Maven Central"
+          
+          ./gradlew publishAllPublicationsToCentralRepository \
+            -PpublishVersion="$VERSION" \
             -PmavenCentralUsername="$MAVEN_USERNAME" \
             -PmavenCentralPassword="$MAVEN_PASSWORD" \
             -Psigning.keyId="$SIGNING_KEY_ID" \
             -Psigning.password="$SIGNING_PASSWORD" \
-            -Psigning.secretKeyRingFile=$HOME/secring.gpg
-            
-      - name: Create bundle for Maven Central
-        run: |
-          cd $HOME/.m2/repository/io/github/myapplabs
-          zip -r $HOME/toolarge-bundle.zip toolarge-core toolarge-android
-          mv $HOME/toolarge-bundle.zip ${{ github.workspace }}/toolarge-bundle.zip
+            -Psigning.secretKeyRingFile=$HOME/secring.gpg \
+            --no-daemon \
+            --stacktrace
           
-      - name: Upload to Maven Central Portal
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-        run: |
-          VERSION=${{ github.event.inputs.version || github.ref_name }}
-          VERSION=${VERSION#v}  # Remove 'v' prefix if present
-          
-          echo "Publishing version: $VERSION"
-          
-          # Create deployment and capture response
-          echo "Creating deployment..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: Bearer $MAVEN_PASSWORD" \
-            -H "Content-Type: application/json" \
-            "https://central.sonatype.com/api/v1/publisher/deployment" \
-            -d "{\"deploymentName\":\"toolarge-$VERSION\",\"deploymentType\":\"USER_MANAGED\"}")
-          
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-          
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response: $RESPONSE_BODY"
-          
-          if [ "$HTTP_CODE" != "201" ]; then
-            echo "Error: Failed to create deployment"
-            exit 1
-          fi
-          
-          DEPLOYMENT_ID=$(echo "$RESPONSE_BODY" | jq -r '.deploymentId')
-          echo "Deployment ID: $DEPLOYMENT_ID"
-          
-          if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" == "null" ]; then
-            echo "Error: Failed to get deployment ID"
-            exit 1
-          fi
-          
-          # Upload bundle
-          echo "Uploading bundle..."
-          UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: Bearer $MAVEN_PASSWORD" \
-            -F "bundle=@$HOME/toolarge-bundle.zip" \
-            "https://central.sonatype.com/api/v1/publisher/upload?deploymentId=$DEPLOYMENT_ID&name=toolarge-$VERSION")
-          
-          UPLOAD_HTTP_CODE=$(echo "$UPLOAD_RESPONSE" | tail -n1)
-          echo "Upload HTTP Status: $UPLOAD_HTTP_CODE"
-          
-          if [ "$UPLOAD_HTTP_CODE" != "201" ] && [ "$UPLOAD_HTTP_CODE" != "200" ]; then
-            echo "Error: Failed to upload bundle"
-            echo "Response: $(echo "$UPLOAD_RESPONSE" | sed '$d')"
-            exit 1
-          fi
-          
-          echo "Bundle uploaded successfully"
-          
-          # Publish deployment  
-          echo "Publishing deployment..."
-          PUBLISH_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: Bearer $MAVEN_PASSWORD" \
-            "https://central.sonatype.com/api/v1/publisher/deployment/$DEPLOYMENT_ID")
-          
-          PUBLISH_HTTP_CODE=$(echo "$PUBLISH_RESPONSE" | tail -n1)
-          echo "Publish HTTP Status: $PUBLISH_HTTP_CODE"
-          
-          if [ "$PUBLISH_HTTP_CODE" != "201" ] && [ "$PUBLISH_HTTP_CODE" != "200" ]; then
-            echo "Error: Failed to publish deployment"
-            echo "Response: $(echo "$PUBLISH_RESPONSE" | sed '$d')"
-            exit 1
-          fi
-          
-          echo "✅ Successfully published to Maven Central!"
-          echo "Note: It may take a few hours for the artifact to appear in Maven Central search"
-          
-      - name: Upload bundle as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: maven-central-bundle
-          path: ${{ github.workspace }}/toolarge-bundle.zip
+          echo "✅ Successfully published to Maven Central staging repository!"
+          echo "📦 Artifacts have been uploaded to the staging repository"
+          echo ""
+          echo "⏳ Next steps:"
+          echo "  1. Log in to https://s01.oss.sonatype.org/"
+          echo "  2. Go to 'Staging Repositories'"
+          echo "  3. Find your repository (io.github.myapplabs)"
+          echo "  4. Click 'Close' to validate the artifacts"
+          echo "  5. Once validation passes, click 'Release' to publish"
+          echo ""
+          echo "🕐 After release, it takes 10-30 minutes to sync to Maven Central"
+          echo "🔍 Check status at: https://search.maven.org/search?q=g:io.github.myapplabs"
