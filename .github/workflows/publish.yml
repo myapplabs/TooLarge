@@ -63,37 +63,56 @@ jobs:
           # Clean up the ASCII key file
           rm -f $HOME/private-key.asc
           
-      - name: Publish to Maven Central
+      - name: Build and sign artifacts locally
         env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
           VERSION=${{ github.event.inputs.version || github.ref_name }}
           VERSION=${VERSION#v}  # Remove 'v' prefix if present
           
-          echo "Publishing version: $VERSION to Maven Central"
+          echo "Building and signing version: $VERSION"
           
-          ./gradlew publishAllPublicationsToCentralRepository \
+          ./gradlew publishToMavenLocal \
             -PpublishVersion="$VERSION" \
-            -PmavenCentralUsername="$MAVEN_USERNAME" \
-            -PmavenCentralPassword="$MAVEN_PASSWORD" \
             -Psigning.keyId="$SIGNING_KEY_ID" \
             -Psigning.password="$SIGNING_PASSWORD" \
             -Psigning.secretKeyRingFile=$HOME/secring.gpg \
-            --no-daemon \
-            --stacktrace
+            --no-daemon
           
-          echo "✅ Successfully published to Maven Central staging repository!"
-          echo "📦 Artifacts have been uploaded to the staging repository"
+          echo "✅ Artifacts built and signed successfully"
+          
+      - name: Create bundle for Maven Central Portal
+        run: |
+          VERSION=${{ github.event.inputs.version || github.ref_name }}
+          VERSION=${VERSION#v}
+          
+          cd $HOME/.m2/repository/io/github/myapplabs
+          zip -r $HOME/toolarge-bundle.zip toolarge-core toolarge-android
+          
+          echo "📦 Bundle created: $HOME/toolarge-bundle.zip"
+          ls -lh $HOME/toolarge-bundle.zip
+          
+      - name: Upload bundle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolarge-maven-bundle-${{ github.event.inputs.version || github.ref_name }}
+          path: ~/toolarge-bundle.zip
+          
+      - name: Display next steps
+        run: |
+          VERSION=${{ github.event.inputs.version || github.ref_name }}
+          VERSION=${VERSION#v}
+          
+          echo "✅ Build complete! Bundle is ready for Maven Central."
           echo ""
-          echo "⏳ Next steps:"
-          echo "  1. Log in to https://s01.oss.sonatype.org/"
-          echo "  2. Go to 'Staging Repositories'"
-          echo "  3. Find your repository (io.github.myapplabs)"
-          echo "  4. Click 'Close' to validate the artifacts"
-          echo "  5. Once validation passes, click 'Release' to publish"
+          echo "📦 Download the bundle artifact from this workflow run"
           echo ""
-          echo "🕐 After release, it takes 10-30 minutes to sync to Maven Central"
-          echo "🔍 Check status at: https://search.maven.org/search?q=g:io.github.myapplabs"
+          echo "🚀 To publish to Maven Central:"
+          echo "  1. Go to: https://central.sonatype.com/publishing"
+          echo "  2. Click 'Publish Component'"
+          echo "  3. Upload the toolarge-bundle.zip file"
+          echo "  4. Click 'Publish'"
+          echo ""
+          echo "🕐 After publishing, it takes 10-30 minutes to sync"
+          echo "🔍 Check at: https://search.maven.org/search?q=g:io.github.myapplabs"
