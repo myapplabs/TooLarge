@@ -40,8 +40,8 @@ publishing {
                 developers {
                     developer {
                         id.set("myapplabs")
-                        name.set("ApplLabs LLC")
-                        email.set("contact@applabs.llc")
+                        name.set("AppLabs LLC")
+                        email.set("mail@applabs.llc")
                     }
                 }
                 
