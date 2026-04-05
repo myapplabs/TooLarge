@@ -332,7 +332,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## Credits
 
-Developed by ApplLabs LLC
+Developed by AppLabs LLC
 
 ---
 
